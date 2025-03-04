@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Memory Game</title>
+<script src="/socket.io/socket.io.js"></script>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="/css/style.css">
+
+<!-- Preload audio files with error handling -->
+<audio id="flip-sound" preload="auto">
+    <source src="/sounds/flip.mp3" type="audio/mpeg">
+    <!-- Fallback for browsers that don't support audio -->
+</audio>
+<audio id="match-sound" preload="auto">
+    <source src="/sounds/match.mp3" type="audio/mpeg">
+    <!-- Fallback for browsers that don't support audio -->
+</audio>
+<audio id="no-match-sound" preload="auto">
+    <source src="/sounds/no-match.mp3" type="audio/mpeg">
+    <!-- Fallback for browsers that don't support audio -->
+</audio>
+</head>
+<body class="bg-gray-100 min-h-screen">
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold text-center mb-8">Memory Game</h1>
+    
+    <!-- Game Setup Section -->
+    <div id="game-setup" class="mb-8 p-6 bg-white rounded-lg shadow-md">
+    <h2 class="text-xl font-semibold mb-4">Game Setup</h2>
+    <div class="flex flex-col md:flex-row gap-4">
+        <div class="flex-1">
+        <h3 class="font-medium mb-2">Create New Game</h3>
+        <div class="mb-3">
+            <label for="player-name" class="block text-sm font-medium text-gray-700">Your Name</label>
+            <input type="text" id="player-name" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+        </div>
+        
+        <!-- New Game Configuration Options -->
+        <div class="mb-3">
+            <label for="max-players" class="block text-sm font-medium text-gray-700">Max Players (2-5)</label>
+            <select id="max-players" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+                <option value="2">2 Players</option>
+                <option value="3">3 Players</option>
+                <option value="4">4 Players</option>
+                <option value="5" selected>5 Players</option>
+            </select>
+        </div>
+        
+        <div class="mb-3">
+            <label for="card-theme" class="block text-sm font-medium text-gray-700">Card Theme</label>
+            <select id="card-theme" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+                <option value="mixed" selected>Mixed (All Themes)</option>
+                <option value="nature">Nature</option>
+                <option value="animals">Animals</option>
+                <option value="food">Food</option>
+                <option value="travel">Travel</option>
+                <option value="sports">Sports</option>
+                <option value="technology">Technology</option>
+                <option value="art">Art</option>
+                <option value="cars">Cars</option>
+                <option value="space">Space</option>
+                <option value="emoji">Emoji</option>
+            </select>
+        </div>
+        
+        <div class="mb-3">
+            <label for="card-count" class="block text-sm font-medium text-gray-700">Card Count</label>
+            <select id="card-count" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+                <option value="8">8 Cards (4 Pairs)</option>
+                <option value="12">12 Cards (6 Pairs)</option>
+                <option value="16">16 Cards (8 Pairs)</option>
+                <option value="24" selected>24 Cards (12 Pairs)</option>
+                <option value="36">36 Cards (18 Pairs)</option>
+                <option value="48">48 Cards (24 Pairs)</option>
+            </select>
+        </div>
+        
+        <button id="create-game" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-md">
+            Create Game
+        </button>
+        </div>
+        
+        <div class="flex-1">
+        <h3 class="font-medium mb-2">Join Existing Game</h3>
+        <div class="mb-3">
+            <label for="join-name" class="block text-sm font-medium text-gray-700">Your Name</label>
+            <input type="text" id="join-name" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+        </div>
+        <div class="mb-3">
+            <label for="game-id" class="block text-sm font-medium text-gray-700">Game ID</label>
+            <input type="text" id="game-id" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+        </div>
+        <button id="join-game" class="w-full bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-4 rounded-md">
+            Join Game
+        </button>
+        </div>
+    </div>
+    </div>
+    
+    <!-- Game Info -->
+    <div id="game-info" class="mb-8 p-6 bg-white rounded-lg shadow-md hidden">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+        <h2 class="text-xl font-semibold">Game ID: <span id="current-game-id" class="font-mono"></span></h2>
+        <p class="text-sm text-gray-600">Share this ID with friends to let them join</p>
+        <button id="copy-game-id" class="mt-2 text-blue-500 text-sm hover:text-blue-700">Copy Game ID</button>
+        </div>
+        <div>
+        <p>Players: <span id="player-count">0</span>/<span id="max-player-count">5</span></p>
+        <p>Current Turn: <span id="current-player-name" class="font-semibold">Waiting...</span></p>
+        <p>Your turn: <span id="player-turn" class="font-semibold">Waiting...</span></p>
+        </div>
+    </div>
+    </div>
+    
+    <!-- Game Options (for host) -->
+    <div id="game-options" class="mb-8 p-6 bg-white rounded-lg shadow-md hidden">
+    <h2 class="text-xl font-semibold mb-4">Game Options</h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div>
+        <label for="edit-max-players" class="block text-sm font-medium text-gray-700">Max Players</label>
+        <select id="edit-max-players" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+            <option value="2">2 Players</option>
+            <option value="3">3 Players</option>
+            <option value="4">4 Players</option>
+            <option value="5" selected>5 Players</option>
+        </select>
+        </div>
+        <div>
+        <label for="edit-card-theme" class="block text-sm font-medium text-gray-700">Card Theme</label>
+        <select id="edit-card-theme" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+            <option value="mixed" selected>Mixed (All Themes)</option>
+            <option value="nature">Nature</option>
+            <option value="animals">Animals</option>
+            <option value="food">Food</option>
+            <option value="travel">Travel</option>
+            <option value="sports">Sports</option>
+            <option value="technology">Technology</option>
+            <option value="art">Art</option>
+            <option value="cars">Cars</option>
+            <option value="space">Space</option>
+            <option value="emoji">Emoji</option>
+        </select>
+        </div>
+        <div>
+        <label for="edit-card-count" class="block text-sm font-medium text-gray-700">Card Count</label>
+        <select id="edit-card-count" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+            <option value="8">8 Cards (4 Pairs)</option>
+            <option value="12">12 Cards (6 Pairs)</option>
+            <option value="16">16 Cards (8 Pairs)</option>
+            <option value="24" selected>24 Cards (12 Pairs)</option>
+            <option value="36">36 Cards (18 Pairs)</option>
+            <option value="48">48 Cards (24 Pairs)</option>
+        </select>
+        </div>
+    </div>
+    <button id="update-options" class="mt-4 bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-md">
+        Update Options
+    </button>
+    </div>
+    
+    <!-- Game Board -->
+    <div id="game-board" class="grid grid-cols-4 md:grid-cols-6 gap-4 mb-8 hidden">
+    <!-- Cards will be inserted here dynamically -->
+    <!-- Template for a card -->
+    <template id="card-template">
+        <div class="card bg-white rounded-lg shadow-md cursor-pointer transform transition-transform duration-300 hover:scale-105" data-card-id="">
+        <div class="card-inner w-full h-full relative transition-transform duration-500 transform-style: preserve-3d">
+            <div class="card-front absolute w-full h-full bg-blue-500 rounded-lg flex items-center justify-center">
+            <span class="text-white text-2xl">?</span>
+            </div>
+            <div class="card-back absolute w-full h-full bg-white rounded-lg flex items-center justify-center">
+            <img src="" alt="Card Image" class="card-image max-w-full max-h-full object-contain">
+            </div>
+        </div>
+        </div>
+    </template>
+    </div>
+    
+    <!-- Game Status -->
+    <div id="game-status" class="text-center p-4 mb-8 bg-white rounded-lg shadow-md hidden">
+    <h2 class="text-xl font-semibold">Game Status</h2>
+    <p id="status-message" class="mt-2">Waiting for players...</p>
+    <p id="player-turn-status" class="mt-2 font-semibold"></p>
+    <p id="game-score" class="mt-2">Your Score: <span id="player-score">0</span></p>
+    </div>
+
+    <!-- Player List -->
+    <div id="player-list" class="p-4 mb-8 bg-white rounded-lg shadow-md hidden">
+    <h2 class="text-xl font-semibold mb-4">Players</h2>
+    <div id="players-container" class="space-y-2">
+        <!-- Players will be inserted dynamically -->
+    </div>
+    </div>
+
+    <!-- Waiting Room -->
+    <div id="waiting-room" class="text-center p-6 mb-8 bg-white rounded-lg shadow-md hidden">
+    <h2 class="text-xl font-semibold mb-4">Waiting for Players</h2>
+    <p class="mb-4">Waiting for more players to join...</p>
+    <p>Current players: <span id="waiting-player-count">1</span>/<span id="waiting-max-players">5</span></p>
+    <button id="start-game" class="mt-4 bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-4 rounded-md">
+        Start Game
+    </button>
+    </div>
+</div>
+
+<!-- Toast container for notifications -->
+<div id="toast-container" class="fixed top-5 right-5 z-50"></div>
+
+<!-- Game Over Modal Template -->
+<template id="game-over-modal-template">
+    <div class="modal-overlay fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div class="modal-content bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
+        <h2 class="modal-title text-2xl font-bold mb-4 text-center">Game Over!</h2>
+        <div class="winner-info text-center mb-6">
+        <p class="text-lg">Winner: <span class="winner-name font-semibold"></span></p>
+        <p>Score: <span class="winner-score"></span> pairs</p>
+        </div>
+        <div class="player-results mb-6">
+        <!-- Player results will be inserted here -->
+        </div>
+        <div class="flex justify-center space-x-4">
+        <button class="play-again-btn bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-6 rounded-md">
+            Play Again
+        </button>
+        <button class="exit-btn bg-red-500 hover:bg-red-600 text-white font-medium py-2 px-6 rounded-md">
+            Exit Game
+        </button>
+        </div>
+    </div>
+    </div>
+</template>
+
+<script src="/js/game.js"></script>
+</body>
+</html>
+
