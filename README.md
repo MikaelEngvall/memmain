@@ -1,83 +1,96 @@
 # Memory Game
 
-## Overview
-This is a multiplayer memory game web application where users can create games and invite others to join. The game uses free image APIs to generate diverse and interesting card sets for each game.
+## Översikt
+Detta är ett multiplayer memory-spel där användare kan skapa spelrum och bjuda in upp till 5 andra spelare. Spelet använder gratis bild-API:er för att generera olika och intressanta kortuppsättningar för varje spel.
 
-## Features
-- Create new memory game sessions
-- Join existing games using a unique game code
-- Real-time multiplayer gameplay using Socket.IO
-- Diverse card sets pulled from free image APIs
-- Responsive design for both desktop and mobile play
-- Score tracking and leaderboards
+## Funktioner
+- Skapa nya memory-spel sessioner
+- Anslut till befintliga spel med en unik spelkod
+- Realtids-multiplayer med Socket.IO
+- Stöd för upp till 5 spelare
+- Anpassningsalternativ för spelkortsantal och tema
+- Varierade kortuppsättningar från gratis bild-API:er
+- Responsiv design för både desktop och mobil
+- Poängräkning och vinnartavla
 
-## Technologies Used
+## Nytillagda funktioner
+- **Stöd för flera spelare**: Utökat från 2 till upp till 5 spelare
+- **Anpassningsbara spelkort**: Möjlighet att välja mellan olika teman:
+  - Natur
+  - Djur
+  - Mat
+  - Resor
+  - Sport
+  - Teknik
+  - Konst
+  - Bilar
+  - Rymden
+  - Emoji
+- **Flexibelt antal kort**: Välj mellan 8, 12, 16, 24, 36 eller 48 kort
+- **Förbättrad UI/UX**: Snyggare design med responsivt gränssnitt
+- **Visuell återkoppling**: Ljud- och visuella effekter för kortmatchningar
+- **Spelvärd-kontroller**: Möjlighet för spelledaren att ändra inställningar
+- **Detaljerad spelstatistik**: Visar poängställning i realtid
+
+## Teknologier
 - **Backend**: Node.js, Express.js
-- **Real-time Communication**: Socket.IO
+- **Realtidskommunikation**: Socket.IO
 - **Frontend**: HTML5, CSS3, JavaScript
-- **Styling**: TailwindCSS
-- **Image Sources**: Free public APIs for images, symbols, icons, and emojis
+- **Styling**: CSS och TailwindCSS
+- **Bildkällor**: Gratis publika API:er för bilder
 
-## Setup and Installation
+## Installation och konfiguration
 ```bash
-# Clone the repository
-git clone https://github.com/YOUR-USERNAME/mem.git
+# Klona repot
+git clone https://github.com/DIN-ANVÄNDARNAMN/mem.git
 
-# Navigate to the project directory
+# Navigera till projektmappen
 cd mem
 
-# Install dependencies
+# Installera beroenden
 npm install
 
-# Start the development server
-npm run start
+# Starta utvecklingsservern
+npm run dev
+
+# ELLER starta produktionsservern
+npm start
 ```
 
-### Prerequisites
-- Node.js (v14 or later)
-- npm (v6 or later)
+### Förutsättningar
+- Node.js (v14 eller senare)
+- npm (v6 eller senare)
 
-### Configuration
-No additional configuration is required to run the game locally. The application will automatically use free public APIs for the card images.
+### Konfiguration
+Ingen ytterligare konfiguration krävs för att köra spelet lokalt. Applikationen använder automatiskt gratis publika API:er för bildkorten.
 
-## How to Play
+## Hur man spelar
 
-### Game Setup
-1. Create a new game by clicking "Create Game" on the homepage
-2. Share the generated game code with friends who want to join
-3. Other players can join using this code from the "Join Game" section
-4. The game begins when all players are ready or the host starts the game
+### Spelkonfiguration
+1. Skapa ett nytt spel genom att klicka på "Create Game" på startsidan
+2. Välj max antal spelare (2-5), bildtema och antal kort
+3. Dela den genererade spelkoden med vänner som vill ansluta
+4. Andra spelare kan ansluta med denna kod från "Join Game"-sektionen
+5. Spelet börjar när värden startar spelet
 
-### Gameplay
-1. Players take turns in the order they joined the game
-2. On your turn, flip two cards by clicking on them
-3. If the cards match, you keep them and earn 1 point
-4. If they don't match, they flip back over and your turn ends
-5. The game continues until all pairs have been found
-6. The player with the most pairs at the end wins
+### Spelande
+1. Spelare turas om i den ordning de gick med i spelet
+2. På din tur, vänd två kort genom att klicka på dem
+3. Om korten matchar behåller du dem och får 1 poäng
+4. Om de inte matchar vänds de tillbaka och din tur avslutas
+5. Spelet fortsätter tills alla par har hittats
+6. Spelaren med flest par i slutet vinner
 
-### Controls
-- Click on cards to flip them
-- Use the chat feature to communicate with other players
-- View the scoreboard to track everyone's progress
+## Framtida utveckling
+- Ytterligare spellägen
+- Anpassningsbara kortteman
+- Användar-konton och permanent statistik
+- Globala topplistor
 
-## Image APIs
-The game utilizes several free image APIs to provide diverse card content:
-- Icon/symbol libraries
-- Public domain image collections
-- Emoji APIs
-- And more!
+## Bidrag
+Bidrag välkomnas! Skicka gärna in en Pull Request.
 
-## Future Development
-- Additional game modes
-- Customizable card themes
-- User accounts and persistent statistics
-- Global leaderboards
-
-## Contributing
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-## License
+## Licens
 MIT License
 
 Copyright (c) 2023

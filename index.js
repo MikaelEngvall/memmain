@@ -167,6 +167,7 @@ socket.on('selectCard', ({ gameId, cardIndex }) => {
     
     // Broadcast the card selection
     io.to(gameId).emit('cardSelected', { 
+        gameId: gameId,
         playerId: socket.id, 
         cardIndex,
         symbol: game.cards[cardIndex].symbol,
@@ -314,56 +315,51 @@ function findWinner(players) {
 }
 
 function generateCards(theme = 'mixed', count = 24) {
-    // This function now supports different themes and card counts
     return new Promise(async (resolve) => {
         const cards = [];
-        let categories = [];
         
-        // Define available themes
-        const themes = {
-            'nature': ['nature', 'landscape', 'plants', 'flowers', 'mountains', 'ocean'],
-            'animals': ['animals', 'cats', 'dogs', 'wildlife', 'birds', 'insects'],
-            'food': ['food', 'fruits', 'vegetables', 'desserts', 'meals', 'drinks'],
-            'travel': ['travel', 'cities', 'landmarks', 'beaches', 'architecture', 'sunset'],
-            'sports': ['sports', 'football', 'basketball', 'tennis', 'soccer', 'swimming'],
-            'technology': ['technology', 'computers', 'gadgets', 'electronics', 'phones', 'devices'],
-            'art': ['art', 'painting', 'sculpture', 'design', 'drawing', 'digital-art'],
-            'cars': ['cars', 'vehicles', 'racing', 'luxury-cars', 'vintage-cars', 'motorcycles'],
-            'space': ['space', 'planets', 'stars', 'galaxy', 'nasa', 'astronomy'],
-            'emoji': ['emoji', 'smileys', 'emoticons', 'faces', 'symbols', 'gestures']
+        // Säkerställ att antal kort är jämnt
+        const pairCount = Math.floor(count / 2);
+        
+        // Emoji-bibliotek för olika teman
+        const emojiLibrary = {
+            'nature': ['🌳', '🌵', '🌴', '🌲', '🌷', '🌹', '🌺', '🌸', '🌻', '🌼', '🍄', '🍁', '☘️', '🍀', '🌿', '🌱', '🌊', '⛰️', '🏔️', '🌋', '🌅', '🌄', '☀️', '🌈'],
+            'animals': ['🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '🐨', '🐯', '🦁', '🐮', '🐷', '🐸', '🐵', '🐔', '🐧', '🐦', '🦆', '🦉', '🦇', '🐺', '🐗', '🐴'],
+            'food': ['🍎', '🍐', '🍊', '🍋', '🍌', '🍉', '🍇', '🍓', '🍒', '🍑', '🥝', '🍍', '🥥', '🥑', '🍆', '🥔', '🥕', '🌽', '🌶️', '🥒', '🥬', '🥦', '🍄', '🥜'],
+            'travel': ['✈️', '🚗', '🚕', '🚌', '🚎', '🏎️', '🚓', '🚑', '🚒', '🚚', '🚛', '🚜', '🛴', '🚲', '🛵', '🏍️', '⛵', '🚤', '🛳️', '⛴️', '🚢', '🚆', '🚇', '🚊'],
+            'sports': ['⚽', '🏀', '🏈', '⚾', '🥎', '🎾', '🏐', '🏉', '🥏', '🎱', '🏓', '🏸', '🏒', '🏑', '🥍', '🏏', '⛳', '🥊', '🥋', '🎽', '🛹', '🛷', '⛸️', '🥌'],
+            'technology': ['💻', '⌨️', '🖥️', '🖱️', '📱', '☎️', '📞', '📟', '📠', '📺', '📻', '🎮', '🕹️', '🎛️', '🎚️', '📡', '⏱️', '⏲️', '⏰', '🕰️', '⌚', '📹', '📸', '🔍'],
+            'art': ['🎨', '🖼️', '🎭', '🎬', '🎤', '🎧', '🎷', '🎸', '🎹', '🎺', '🎻', '🥁', '📚', '📖', '📝', '✏️', '🖋️', '🖌️', '🖍️', '📝', '📃', '📄', '📑', '🎵'],
+            'cars': ['🚗', '🚕', '🚙', '🚌', '🚎', '🏎️', '🚓', '🚑', '🚒', '🚐', '🚚', '🚛', '🚜', '🛴', '🚲', '🛵', '🏍️', '🚨', '🚔', '🚍', '🚘', '🚖', '🚡', '🚠'],
+            'space': ['🌍', '🌎', '🌏', '🌐', '🌑', '🌒', '🌓', '🌔', '🌕', '🌖', '🌗', '🌘', '🌙', '🌚', '🌛', '🌜', '☀️', '⭐', '🌟', '✨', '⚡', '☄️', '💫', '🔭'],
+            'emoji': ['😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '😊', '😇', '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚', '😋', '😛', '😝', '😜']
         };
         
-        // Set categories based on selected theme
+        // Standarduppsättning av emojis om temat inte finns eller om temat är blandat
+        let selectedEmojis = [];
+        
         if (theme === 'mixed') {
-            // Use all categories for mixed theme
-            categories = Object.values(themes).flat();
-        } else if (themes[theme]) {
-            categories = themes[theme];
+            // Blanda alla teman
+            const allEmojis = Object.values(emojiLibrary).flat();
+            // Slumpa och ta pairCount antal
+            selectedEmojis = shuffleArray(allEmojis).slice(0, pairCount);
+        } else if (emojiLibrary[theme]) {
+            // Använd det valda temat
+            const themeEmojis = emojiLibrary[theme];
+            selectedEmojis = shuffleArray(themeEmojis).slice(0, pairCount);
         } else {
-            // Fallback to mixed if theme not found
-            categories = Object.values(themes).flat();
+            // Fallback till blandade emojis
+            const allEmojis = Object.values(emojiLibrary).flat();
+            selectedEmojis = shuffleArray(allEmojis).slice(0, pairCount);
         }
         
-        // Ensure count is even (for pairs)
-        const pairCount = Math.floor(count / 2);
-        const imageIds = [];
-        
-        // Generate unique image IDs for the pairs
-        for (let i = 0; i < pairCount; i++) {
-            // Generate a unique ID for each image
-            const id = Math.floor(Math.random() * 1000).toString();
-            imageIds.push(id);
-        }
-        
-        // Create pairs
-        imageIds.forEach((id, index) => {
-            const category = categories[index % categories.length];
-            const imageUrl = `https://source.unsplash.com/150x150/?${category}&sig=${id}`;
-            cards.push({ id: id + 'a', symbol: imageUrl, flipped: false, matched: false });
-            cards.push({ id: id + 'b', symbol: imageUrl, flipped: false, matched: false });
+        // Skapa kortpar
+        selectedEmojis.forEach((emoji, index) => {
+            cards.push({ id: index + 'a', symbol: emoji, flipped: false, matched: false });
+            cards.push({ id: index + 'b', symbol: emoji, flipped: false, matched: false });
         });
         
-        // Shuffle
+        // Blanda korten och returnera
         resolve(shuffleArray(cards));
     });
 }

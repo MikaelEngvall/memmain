@@ -9,18 +9,44 @@
 <link rel="stylesheet" href="/css/style.css">
 
 <!-- Preload audio files with error handling -->
-<audio id="flip-sound" preload="auto">
-    <source src="/sounds/flip.mp3" type="audio/mpeg">
+<audio id="flip-sound" preload="auto" src="/sounds/flip.ogg">
     <!-- Fallback for browsers that don't support audio -->
 </audio>
-<audio id="match-sound" preload="auto">
-    <source src="/sounds/match.mp3" type="audio/mpeg">
+<!-- Alternativa kortflippningsljud för variation -->
+<audio id="flip-sound-2" preload="auto" src="/sounds/flip.ogg">
+</audio>
+<audio id="flip-sound-3" preload="auto" src="/sounds/flip.ogg">
+</audio>
+<audio id="match-sound" preload="auto" src="/sounds/match.wav">
     <!-- Fallback for browsers that don't support audio -->
 </audio>
-<audio id="no-match-sound" preload="auto">
-    <source src="/sounds/no-match.mp3" type="audio/mpeg">
+<audio id="no-match-sound" preload="auto" src="/sounds/no-match.wav">
     <!-- Fallback for browsers that don't support audio -->
 </audio>
+
+<script>
+// Debug-funktion för ljudladdning
+window.addEventListener('DOMContentLoaded', function() {
+    console.log('Kontrollerar ljudfiler:');
+    const sounds = ['flip-sound', 'flip-sound-2', 'flip-sound-3', 'match-sound', 'no-match-sound'];
+    sounds.forEach(id => {
+        const soundEl = document.getElementById(id);
+        if (soundEl) {
+            console.log(`${id}: Ljudelement hittades`);
+            console.log(`- Source: ${soundEl.src}`);
+            console.log(`- Network state: ${soundEl.networkState}`);
+            console.log(`- Ready state: ${soundEl.readyState}`);
+            
+            // Lyssna efter fel
+            soundEl.addEventListener('error', function(e) {
+                console.error(`Ljudfel för ${id}:`, e);
+            });
+        } else {
+            console.error(`${id}: Ljudelement hittades inte!`);
+        }
+    });
+});
+</script>
 </head>
 <body class="bg-gray-100 min-h-screen">
 <div class="container mx-auto px-4 py-8">
